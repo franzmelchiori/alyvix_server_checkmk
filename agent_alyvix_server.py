@@ -29,12 +29,19 @@ import json
 import urllib.request
 
 
+ERROR_LEVEL = {0: 'OK',
+               1: 'WARNING',
+               2: 'CRITICAL',
+               3: 'UNKNOWN'}
+
+
 class AlyvixServerMeasure:
     def __init__(self,
                  timestamp_epoch,  # e.g. 1619000540323290112
                  hostname,  # e.g. "alyvixserver"
                  domain_username,  # e.g. "CO\\AlyvixUser05"
                  test_case_alias,  # e.g. "visittrentino"
+                 test_case_duration_ms,  # e.g. 13998
                  test_case_exit,  # e.g. "true"
                  test_case_state,  # e.g. 0
                  transaction_alias,  # e.g. "vt_home_ready"
@@ -44,7 +51,6 @@ class AlyvixServerMeasure:
                  test_case_name=None,  # e.g. "visittrentino"
                  test_case_arguments=None,  # e.g. null
                  test_case_execution_code=None,  # e.g. "pb02Al05vino1619000538"
-                 test_case_duration_ms=None,  # e.g. 13998
                  transaction_name=None,  # e.g. "vt_home_ready"
                  transaction_group=None,  # e.g. null
                  transaction_detection_type=None,  # e.g. "appear"
@@ -61,6 +67,7 @@ class AlyvixServerMeasure:
         self.hostname = hostname
         self.domain_username = domain_username
         self.test_case_alias = test_case_alias
+        self.test_case_duration_ms = test_case_duration_ms
         self.test_case_exit = test_case_exit
         self.test_case_state = test_case_state
         self.transaction_alias = transaction_alias
@@ -70,7 +77,6 @@ class AlyvixServerMeasure:
         self.test_case_name = test_case_name
         self.test_case_arguments = test_case_arguments
         self.test_case_execution_code = test_case_execution_code
-        self.test_case_duration_ms = test_case_duration_ms
         self.transaction_name = transaction_name
         self.transaction_group = transaction_group
         self.transaction_detection_type = transaction_detection_type
@@ -89,28 +95,12 @@ class AlyvixServerCheckmkMeasure(AlyvixServerMeasure):
     def __repr__(self):
         return self.output_measure()
 
-    def output_testcase(self):
-        checkmk_agent_measure_output = ''
-        checkmk_agent_separator = ' | '
-        checkmk_agent_newline = '\n'
-        # checkmk_agent_measure_output += '{0}{1}'.format(time.ctime(self.timestamp_epoch/pow(10, 9)),
-        #                                                 checkmk_agent_separator)
-        # checkmk_agent_measure_output += '{0}{1}'.format(self.hostname,
-        #                                                 checkmk_agent_separator)
-        # checkmk_agent_measure_output += '{0}{1}'.format(self.domain_username,
-        #                                                 checkmk_agent_separator)
-        # checkmk_agent_measure_output += '{0}{1}'.format(self.test_case_alias,
-        #                                                 checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(self.test_case_exit,
-                                                        checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(self.test_case_state,
-                                                        checkmk_agent_newline)
-        return checkmk_agent_measure_output
-
     def output_measure(self):
         checkmk_agent_measure_output = ''
         checkmk_agent_separator = ' | '
         checkmk_agent_newline = '\n'
+        checkmk_agent_measure_output += '{0}{1}'.format(ERROR_LEVEL[self.transaction_state],
+                                                        checkmk_agent_separator)
         checkmk_agent_measure_output += '{0}{1}'.format(time.ctime(self.timestamp_epoch/pow(10, 9)),
                                                         checkmk_agent_separator)
         checkmk_agent_measure_output += '{0}{1}'.format(self.hostname,
@@ -124,8 +114,26 @@ class AlyvixServerCheckmkMeasure(AlyvixServerMeasure):
         checkmk_agent_measure_output += '{0}{1}'.format(self.transaction_performance_ms,
                                                         checkmk_agent_separator)
         checkmk_agent_measure_output += '{0}{1}'.format(self.transaction_exit,
+                                                        checkmk_agent_newline)
+        return checkmk_agent_measure_output
+
+    def output_testcase(self):
+        checkmk_agent_measure_output = ''
+        checkmk_agent_separator = ' | '
+        checkmk_agent_newline = '\n'
+        checkmk_agent_measure_output += '{0}{1}'.format(ERROR_LEVEL[self.test_case_state],
                                                         checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(self.transaction_state,
+        checkmk_agent_measure_output += '{0}{1}'.format(time.ctime(self.timestamp_epoch/pow(10, 9)),
+                                                        checkmk_agent_separator)
+        checkmk_agent_measure_output += '{0}{1}'.format(self.hostname,
+                                                        checkmk_agent_separator)
+        checkmk_agent_measure_output += '{0}{1}'.format(self.domain_username,
+                                                        checkmk_agent_separator)
+        checkmk_agent_measure_output += '{0}{1}'.format(self.test_case_alias,
+                                                        checkmk_agent_separator)
+        checkmk_agent_measure_output += '{0}{1}'.format(self.test_case_duration_ms,
+                                                        checkmk_agent_separator)
+        checkmk_agent_measure_output += '{0}{1}'.format(self.test_case_exit,
                                                         checkmk_agent_newline)
         return checkmk_agent_measure_output
 
@@ -162,15 +170,16 @@ class AlyvixServerCheckmkAgent:
             hostname=self.alyvix_server_measure_response['hostname'],
             domain_username=self.alyvix_server_measure_response['domain_username'],
             test_case_alias=self.alyvix_server_measure_response['test_case_alias'],
+            test_case_duration_ms=self.alyvix_server_measure_response['test_case_duration_ms'],
             test_case_exit=self.alyvix_server_measure_response['test_case_exit'],
             test_case_state=self.alyvix_server_measure_response['test_case_state'],
             transaction_alias=self.alyvix_server_measure_response['transaction_alias'],
             transaction_performance_ms=self.alyvix_server_measure_response['transaction_performance_ms'],
             transaction_exit=self.alyvix_server_measure_response['transaction_exit'],
+            transaction_state=self.alyvix_server_measure_response['transaction_state'],
             test_case_name=self.alyvix_server_measure_response['test_case_name'],
             test_case_arguments=self.alyvix_server_measure_response['test_case_arguments'],
             test_case_execution_code=self.alyvix_server_measure_response['test_case_execution_code'],
-            test_case_duration_ms=self.alyvix_server_measure_response['test_case_duration_ms'],
             transaction_name=self.alyvix_server_measure_response['transaction_name'],
             transaction_group=self.alyvix_server_measure_response['transaction_group'],
             transaction_detection_type=self.alyvix_server_measure_response['transaction_detection_type'],
@@ -178,7 +187,6 @@ class AlyvixServerCheckmkAgent:
             transaction_warning_ms=self.alyvix_server_measure_response['transaction_warning_ms'],
             transaction_critical_ms=self.alyvix_server_measure_response['transaction_critical_ms'],
             transaction_accuracy_ms=self.alyvix_server_measure_response['transaction_accuracy_ms'],
-            transaction_state=self.alyvix_server_measure_response['transaction_state'],
             transaction_record_text=self.alyvix_server_measure_response['transaction_record_text'],
             transaction_record_extract=self.alyvix_server_measure_response['transaction_record_extract'],
             transaction_resolution_width=self.alyvix_server_measure_response['transaction_resolution_width'],
@@ -214,6 +222,7 @@ def main():
             #                                                                 'alyvixserver',
             #                                                                 'CO\\AlyvixUser',
             #                                                                 'visittrentino',
+            #                                                                 13998,
             #                                                                 True,
             #                                                                 0,
             #                                                                 'vt_home_ready',
