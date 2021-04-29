@@ -24,6 +24,7 @@
 
 import sys
 from cmk.special_agents.agent_alyvix_server import main
+# from agent_alyvix_server import main
 
 
 if __name__ == '__main__':
