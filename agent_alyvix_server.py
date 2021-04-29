@@ -246,13 +246,14 @@ class AlyvixServerCheckmkAgent:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='This Checkmk special agent uses the RESTful web API of'
-                    'the Alyvix Server to gather transaction measurements'
-                    'about a given ongoing Alyvix test case.')
+        description='This Checkmk special agent uses the RESTful web'
+                    'API of the Alyvix Server to gather transaction'
+                    'measurements about a given ongoing Alyvix test'
+                    'case.')
     parser.add_argument(
-        '-d', '--development_environment',
-        help='get static Alyvix Server sample data from file for development'
-             'purposes')
+        '-d', '--development_environment', action='store_true',
+        help='get static Alyvix Server sample data from file for'
+             'development purposes')
     parser.add_argument(
         '-a', '--alyvix_server_https_url',
         help='set the HTTPS URL to Alyvix Server (e.g.'
