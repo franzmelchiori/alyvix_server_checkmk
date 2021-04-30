@@ -158,11 +158,11 @@ class AlyvixServerCheckmkAgent:
         self.build_alyvix_server_checkmk_measures()
 
     def __repr__(self):
-        checkmk_agent_output =\
-            '<<<alyvix>>>\n' +\
+        checkmk_agent_output = \
+            '<<<alyvix>>>\n' + \
             ''.join([self.alyvix_server_checkmk_measure.output_measure()
                      for self.alyvix_server_checkmk_measure
-                     in self.alyvix_server_checkmk_measures]) +\
+                     in self.alyvix_server_checkmk_measures]) + \
             self.alyvix_server_checkmk_testcase.output_testcase()
         return checkmk_agent_output
 
@@ -173,10 +173,7 @@ class AlyvixServerCheckmkAgent:
         else:
             alyvix_server_request = '{0}/v0/testcases/{1}/'.format(
                 self.alyvix_server_https_url, self.test_case_alias)
-            # ctx = ssl.create_default_context()
-            # ctx.check_hostname = False
-            # ctx.verify_mode = ssl.CERT_NONE
-            ssl._create_default_https_context =\
+            ssl._create_default_https_context = \
                 ssl._create_unverified_context
             self.alyvix_server_response = json.load(
                 urllib.request.urlopen(alyvix_server_request))
