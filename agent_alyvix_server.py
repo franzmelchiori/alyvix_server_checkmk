@@ -157,13 +157,11 @@ class AlyvixServerCheckmkAgent:
         self.build_alyvix_server_checkmk_measures()
 
     def __repr__(self):
-        # [refactor] convert for loop in list comprehension
-        checkmk_agent_output = '<<<alyvix>>>\n'
-        for self.alyvix_server_checkmk_measure \
-                in self.alyvix_server_checkmk_measures:
-            checkmk_agent_output += \
-                self.alyvix_server_checkmk_measure.output_measure()
-        checkmk_agent_output += \
+        checkmk_agent_output =\
+            '<<<alyvix>>>\n' +\
+            ''.join([self.alyvix_server_checkmk_measure.output_measure()
+                     for self.alyvix_server_checkmk_measure
+                     in self.alyvix_server_checkmk_measures]) +\
             self.alyvix_server_checkmk_testcase.output_testcase()
         return checkmk_agent_output
 
