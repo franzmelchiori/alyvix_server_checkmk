@@ -173,12 +173,8 @@ class AlyvixServerCheckmkAgent:
         else:
             alyvix_server_request = '{0}/v0/testcases/{1}/'.format(
                 self.alyvix_server_https_url, self.test_case_alias)
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
             self.alyvix_server_response = json.load(
-                urllib.request.urlopen(alyvix_server_request),
-                context=ctx)
+                urllib.request.urlopen(alyvix_server_request))
         return self.alyvix_server_response
 
     def build_alyvix_server_checkmk_measure(self):
