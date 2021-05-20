@@ -22,6 +22,10 @@
 """
 
 
+# TODO
+# add past STATE SYSTEM
+
+
 import sys
 import argparse
 import time
@@ -150,7 +154,11 @@ class AlyvixServerCheckmkAgent:
         self.test_case_alias = test_case_alias
         self.development_environment = development_environment
         self.alyvix_server_response = {}
-        self.get_alyvix_server_data()
+        try:
+            self.get_alyvix_server_data()
+        except urllib.error.URLError:
+            print('Please, check --alyvix_server_https_url')
+            raise SystemExit
         self.alyvix_server_measure_response = None
         self.alyvix_server_checkmk_measure = None
         self.alyvix_server_checkmk_measures = []
@@ -158,12 +166,14 @@ class AlyvixServerCheckmkAgent:
         self.build_alyvix_server_checkmk_measures()
 
     def __repr__(self):
-        checkmk_agent_output = \
-            '<<<alyvix>>>\n' + \
-            ''.join([self.alyvix_server_checkmk_measure.output_measure()
-                     for self.alyvix_server_checkmk_measure
-                     in self.alyvix_server_checkmk_measures]) + \
-            self.alyvix_server_checkmk_testcase.output_testcase()
+        checkmk_agent_output = '<<<alyvix_{0}>>>\n'.format(
+            self.test_case_alias)
+        if self.alyvix_server_response['measures']:
+            checkmk_agent_output += \
+                ''.join([self.alyvix_server_checkmk_measure.output_measure()
+                         for self.alyvix_server_checkmk_measure
+                         in self.alyvix_server_checkmk_measures]) + \
+                self.alyvix_server_checkmk_testcase.output_testcase()
         return checkmk_agent_output
 
     def get_alyvix_server_data(self):
@@ -236,13 +246,34 @@ class AlyvixServerCheckmkAgent:
         return self.alyvix_server_checkmk_measure
 
     def build_alyvix_server_checkmk_measures(self):
-        self.alyvix_server_checkmk_measures = [
-            self.build_alyvix_server_checkmk_measure() for
-            self.alyvix_server_measure_response in
-            self.alyvix_server_response['measures']]
-        self.alyvix_server_checkmk_testcase = \
-            self.alyvix_server_checkmk_measures[0]
+        if self.alyvix_server_response['measures']:
+            self.alyvix_server_checkmk_measures = [
+                self.build_alyvix_server_checkmk_measure() for
+                self.alyvix_server_measure_response in
+                self.alyvix_server_response['measures']]
+            self.alyvix_server_checkmk_testcase = \
+                self.alyvix_server_checkmk_measures[0]
         return self.alyvix_server_checkmk_measures
+
+
+class CLIArgumentsException(Exception):
+    pass
+
+
+class NoArgumentsException(CLIArgumentsException):
+    def __str__(self):
+        exception_message = 'Please, set --alyvix_server_https_url ' \
+                            'and --test_case_alias, or ' \
+                            '--development_environment'
+        return exception_message
+
+
+class AlyvixArgumentsException(CLIArgumentsException):
+    def __str__(self):
+        exception_message = 'Please, set valid ' \
+                            '--alyvix_server_https_url and ' \
+                            '--test_case_alias'
+        return exception_message
 
 
 def main():
@@ -263,26 +294,32 @@ def main():
         '-t', '--test_case_alias',
         help='set the Alyvix test case alias (e.g. visittrentino)')
     cli_args = sys.argv[1:]
-    if cli_args:
-        args = parser.parse_args()
-        development_environment = args.development_environment \
-            if args.development_environment else False
-        alyvix_server_https_url = args.alyvix_server_https_url \
-            if args.alyvix_server_https_url else False
-        test_case_alias = args.test_case_alias \
-            if args.test_case_alias else False
-        if development_environment:
-            alyvix_server_checkmk_agent = AlyvixServerCheckmkAgent(
-                '', '', True)
-            print(alyvix_server_checkmk_agent)
-            pass
-        else:
-            if alyvix_server_https_url and test_case_alias:
+    try:
+        if cli_args:
+            args = parser.parse_args()
+            development_environment = args.development_environment \
+                if args.development_environment else False
+            alyvix_server_https_url = args.alyvix_server_https_url \
+                if args.alyvix_server_https_url else False
+            test_case_alias = args.test_case_alias \
+                if args.test_case_alias else False
+            if development_environment:
                 alyvix_server_checkmk_agent = AlyvixServerCheckmkAgent(
-                    alyvix_server_https_url, test_case_alias)
+                    '', '', True)
                 print(alyvix_server_checkmk_agent)
             else:
-                pass
+                if alyvix_server_https_url and test_case_alias:
+                    alyvix_server_checkmk_agent = AlyvixServerCheckmkAgent(
+                        alyvix_server_https_url, test_case_alias)
+                    print(alyvix_server_checkmk_agent)
+                else:
+                    raise AlyvixArgumentsException
+        else:
+            raise NoArgumentsException
+    except NoArgumentsException as exception:
+        print(exception)
+    except AlyvixArgumentsException as exception:
+        print(exception)
 
 
 if __name__ == '__main__':
