@@ -100,58 +100,80 @@ class AlyvixServerCheckmkMeasure(AlyvixServerMeasure):
     def __repr__(self):
         return self.output_measure()
 
-    def output_measure(self):
+    def output_measure(self, print_style='checkmk_datasource_program'):
         checkmk_agent_measure_output = ''
-        checkmk_agent_separator = ' | '
-        checkmk_agent_newline = '\n'
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            ERROR_LEVEL[self.transaction_state], checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            time.ctime(self.timestamp_epoch/pow(10, 9)),
-            checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            self.hostname, checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            self.domain_username, checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            self.test_case_alias, checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            self.transaction_alias, checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            self.transaction_performance_ms, checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            self.transaction_exit, checkmk_agent_newline)
+        if print_style == 'checkmk_datasource_program':
+            checkmk_agent_separator = ' | '
+            checkmk_agent_newline = '\n'
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                ERROR_LEVEL[self.transaction_state], checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                time.ctime(self.timestamp_epoch/pow(10, 9)),
+                checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.hostname, checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.domain_username, checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.test_case_alias, checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.transaction_alias, checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.transaction_performance_ms, checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.transaction_exit, checkmk_agent_newline)
+        if print_style == 'checkmk_local_check':
+            checkmk_agent_separator = ' '
+            checkmk_agent_measure_output += '{0}={1};{2};{3};;{4}'.format(
+                self.transaction_alias, self.transaction_performance_ms,
+                self.transaction_warning_ms, self.transaction_critical_ms,
+                checkmk_agent_separator)
         return checkmk_agent_measure_output
 
-    def output_testcase(self):
+    def output_testcase(self, print_style='checkmk_datasource_program'):
         checkmk_agent_measure_output = ''
-        checkmk_agent_separator = ' | '
-        checkmk_agent_newline = '\n'
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            ERROR_LEVEL[self.test_case_state], checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            time.ctime(self.timestamp_epoch/pow(10, 9)),
-            checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            self.hostname, checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            self.domain_username, checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            self.test_case_alias, checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            self.test_case_duration_ms, checkmk_agent_separator)
-        checkmk_agent_measure_output += '{0}{1}'.format(
-            self.test_case_exit, checkmk_agent_newline)
+        if print_style == 'checkmk_datasource_program':
+            checkmk_agent_separator = ' | '
+            checkmk_agent_newline = '\n'
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                ERROR_LEVEL[self.test_case_state], checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                time.ctime(self.timestamp_epoch/pow(10, 9)),
+                checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.hostname, checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.domain_username, checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.test_case_alias, checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.test_case_duration_ms, checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.test_case_exit, checkmk_agent_newline)
+        if print_style == 'checkmk_local_check':
+            checkmk_agent_separator = ' '
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.test_case_state, checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}{1}'.format(
+                self.test_case_alias, checkmk_agent_separator)
+            checkmk_agent_measure_output += '{0}={1};;;;{2}'.format(
+                'duration', self.test_case_duration_ms,
+                checkmk_agent_separator)
         return checkmk_agent_measure_output
+
+    def output_testcase_executioncode(self):
+        return '{0}'.format(self.test_case_execution_code)
 
 
 class AlyvixServerCheckmkAgent:
     def __init__(self,
                  alyvix_server_https_url,
                  test_case_alias,
+                 print_style='checkmk_local_check',
                  development_environment=False):
         self.alyvix_server_https_url = alyvix_server_https_url
         self.test_case_alias = test_case_alias
+        self.print_style = print_style
         self.development_environment = development_environment
         self.alyvix_server_response = {}
         try:
@@ -166,14 +188,35 @@ class AlyvixServerCheckmkAgent:
         self.build_alyvix_server_checkmk_measures()
 
     def __repr__(self):
-        checkmk_agent_output = '<<<alyvix_{0}>>>\n'.format(
-            self.test_case_alias)
+        checkmk_agent_output = ''
         if self.alyvix_server_response['measures']:
-            checkmk_agent_output += \
-                ''.join([self.alyvix_server_checkmk_measure.output_measure()
+            if self.print_style == 'checkmk_datasource_program':
+                checkmk_agent_output += '<<<alyvix_{0}>>>\n'.format(
+                    self.test_case_alias)
+                checkmk_agent_output += \
+                    ''.join(
+                        [self.alyvix_server_checkmk_measure.output_measure(
+                            print_style='checkmk_datasource_program')
                          for self.alyvix_server_checkmk_measure
                          in self.alyvix_server_checkmk_measures]) + \
-                self.alyvix_server_checkmk_testcase.output_testcase()
+                    self.alyvix_server_checkmk_testcase.output_testcase(
+                            print_style='checkmk_datasource_program')
+            if self.print_style == 'checkmk_local_check':
+                checkmk_agent_output += \
+                    self.alyvix_server_checkmk_testcase.output_testcase(
+                        print_style='checkmk_local_check')
+                checkmk_agent_output += \
+                    ''.join(
+                        [self.alyvix_server_checkmk_measure.output_measure(
+                            print_style='checkmk_local_check')
+                         for self.alyvix_server_checkmk_measure
+                         in self.alyvix_server_checkmk_measures])
+                checkmk_agent_output += 'Test case report: '
+                checkmk_agent_output += \
+                    '{0}/v0/testcases/{1}/reports/?runcode={2}'.format(
+                        self.alyvix_server_https_url, self.test_case_alias,
+                        self.alyvix_server_checkmk_testcase.
+                        output_testcase_executioncode())
         return checkmk_agent_output
 
     def get_alyvix_server_data(self):
@@ -305,7 +348,7 @@ def main():
                 if args.test_case_alias else False
             if development_environment:
                 alyvix_server_checkmk_agent = AlyvixServerCheckmkAgent(
-                    '', '', True)
+                    '', '', 'checkmk_local_check', True)
                 print(alyvix_server_checkmk_agent)
             else:
                 if alyvix_server_https_url and test_case_alias:
