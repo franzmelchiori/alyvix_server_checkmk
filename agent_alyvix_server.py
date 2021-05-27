@@ -219,12 +219,10 @@ class AlyvixServerCheckmkAgent:
                          in self.alyvix_server_checkmk_measures])
                 checkmk_agent_output += ' '
                 checkmk_agent_output += \
-                    '<a href="{0}/v0/testcases/{1}/reports/?runcode={2}" '\
-                    .format(
+                    '{0}/v0/testcases/{1}/reports/?runcode={2}'.format(
                         self.alyvix_server_https_url, self.test_case_alias,
                         self.alyvix_server_checkmk_testcase.
                         test_case_execution_code)
-                checkmk_agent_output += 'target="_blank">Test case report</a>'
         return checkmk_agent_output
 
     def get_alyvix_server_data(self):
