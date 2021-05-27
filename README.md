@@ -1,6 +1,6 @@
-# Checkmk special agent for Alyvix Server
+# Checkmk local check for Alyvix Server
 
-This Checkmk special agent uses the RESTful web API of the Alyvix Server
+This Checkmk local check uses the RESTful web API of the Alyvix Server
 to gather transaction measurements about a given ongoing Alyvix test
 case.
 
@@ -9,20 +9,14 @@ usage:
                            `[-a ALYVIX_SERVER_HTTPS_URL]`
                            `[-t TEST_CASE_ALIAS]`
   
-where to install the wrapper `agent_alyvix_server` of this special agent
-in Checkmk:
-* `/omd/sites/checkmkalyvix/local/bin`
-
-where to install the module `agent_alyvix_server.py` of this special
-agent in Checkmk:
-* `/omd/sites/checkmkalyvix/lib/python3/cmk/special_agents`
-
-notes:
-* Checkmk special agents (a type of Checkmk datasource program) retrieve
-  data via HTTP scripts
-* Checkmk executes this CLI command: this produces the agent data on the
-  standard output, which is then processed by Checkmk in exactly the
-  same way as if it had come from a normal agent
-* look for 'Individual program call' instead of agent access
-* any exit code other than 0 will be treated as an error
-* error messages are expected on the standard error channel (stderr)
+1. install the module `agent_alyvix_server.py` in a folder
+   `ALYVIX_SERVER_CHECKMK_PATH` of the Alyvix Server Windows machine
+   
+2. rename and install the batch file
+   `agent_alyvix_server_TESTCASEALIAS.bat` in the folder
+   `C:\ProgramData\checkmk\agent\local`; edit the batch file to set
+   `PYTHON_PATH`, `ALYVIX_SERVER_CHECKMK_PATH`,
+   `ALYVIX_SERVER_HTTPS_URL` and `TEST_CASE_ALIAS`
+   
+3. open the Checkmk service configuration web UI of the Alyvix Server
+   host, scan for new services and add the new `TESTCASEALIAS` service
