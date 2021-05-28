@@ -2,7 +2,7 @@
 
 
 """
-    Checkmk special agent for Alyvix Server
+    Checkmk local check for Alyvix Server
     Copyright (C) 2021 Francesco Melchiori
     <https://www.francescomelchiori.com/>
 
@@ -26,7 +26,7 @@
 # add past STATE SYSTEM
 
 
-import sys
+# import sys
 import argparse
 import time
 import json

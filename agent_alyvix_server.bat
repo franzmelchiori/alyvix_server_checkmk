@@ -1,3 +1,2 @@
 @echo off
-python.exe ALYVIX_SERVER_CHECKMK_PATH/agent_alyvix_server.py -a ALYVIX_SERVER_HTTPS_URL -t TEST_CASE_ALIAS_01
-python.exe ALYVIX_SERVER_CHECKMK_PATH/agent_alyvix_server.py -a ALYVIX_SERVER_HTTPS_URL -t TEST_CASE_ALIAS_02
+python -m alyvix_server_checkmk.agent_alyvix_server
