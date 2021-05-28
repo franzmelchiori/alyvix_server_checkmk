@@ -300,8 +300,22 @@ class AlyvixServerCheckmkAgent:
                 self.build_alyvix_server_checkmk_measure() for
                 self.alyvix_server_measure_response in
                 self.alyvix_server_response['measures']]
+            self.select_alyvix_server_checkmk_measures()
             self.alyvix_server_checkmk_testcase = \
                 self.alyvix_server_checkmk_measures[0]
+        return self.alyvix_server_checkmk_measures
+
+    def select_alyvix_server_checkmk_measures(
+            self, selection_criterion='last_measures'):
+        if selection_criterion == 'last_measures':
+            execution_codes = [
+                (measure.timestamp_epoch, measure.test_case_execution_code)
+                for measure in self.alyvix_server_checkmk_measures]
+            last_execution_code = max(execution_codes)[1]
+            self.alyvix_server_checkmk_measures = [
+                measure
+                for measure in self.alyvix_server_checkmk_measures
+                if measure.test_case_execution_code == last_execution_code]
         return self.alyvix_server_checkmk_measures
 
 
@@ -354,7 +368,8 @@ def main():
                 if args.test_case_alias else False
             if development_environment:
                 alyvix_server_checkmk_agent = AlyvixServerCheckmkAgent(
-                    '', '', 'checkmk_local_check', True)
+                    'ALYVIX_SERVER_HTTPS_URL', 'TEST_CASE_ALIAS',
+                    'checkmk_local_check', True)
                 print(alyvix_server_checkmk_agent)
             else:
                 if alyvix_server_https_url and test_case_alias:
