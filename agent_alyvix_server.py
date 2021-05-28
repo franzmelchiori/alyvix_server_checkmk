@@ -217,7 +217,7 @@ class AlyvixServerCheckmkAgent:
                             print_style='checkmk_local_check')
                          for self.alyvix_server_checkmk_measure
                          in self.alyvix_server_checkmk_measures])
-                checkmk_agent_output += ' '
+                checkmk_agent_output += ' Test case report: '
                 checkmk_agent_output += \
                     '{0}/v0/testcases/{1}/reports/?runcode={2}'.format(
                         self.alyvix_server_https_url, self.test_case_alias,
