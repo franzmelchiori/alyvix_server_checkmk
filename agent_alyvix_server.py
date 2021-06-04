@@ -130,9 +130,9 @@ class AlyvixServerCheckmkMeasure(AlyvixServerMeasure):
                 self.transaction_alias,
                 self.transaction_performance_ms
                 if self.transaction_performance_ms else checkmk_agent_none,
-                self.transaction_performance_ms
+                self.transaction_warning_ms
                 if self.transaction_warning_ms else checkmk_agent_none,
-                self.transaction_performance_ms
+                self.transaction_critical_ms
                 if self.transaction_critical_ms else checkmk_agent_none,
                 checkmk_agent_separator)
         return checkmk_agent_measure_output
